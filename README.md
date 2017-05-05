@@ -8,12 +8,10 @@
 
 创建全局 dce-metadata-agent 服务
 ```bash
-	docker service create --name dce-metadata-agent --mode global   --mount type=bind,src=/var/run,dst=/var/run -l io.daocloud.dce.system=build-in daocloud.io/daocloud/dce-metadata-agent 
+    docker service create --name dce-metadata-agent --mode global   --mount type=bind,src=/var/run,dst=/var/run -l io.daocloud.dce.system=build-in daocloud.io/daocloud/dce-metadata-agent 
 ```
 
 ## Build
-
-git clone $project
 
 推荐使用 docker
 
@@ -27,13 +25,15 @@ git clone $project
     env GOOS=linux GOARCH=amd64 go build .
 ```
 
+---
+
 ## Usage
 
 ```bash
     ./docker-meta && sh set_env.sh
 ```
 
-
+---
 
 ## Sample
 假设我们使用以下命令创建一个容器 
@@ -57,6 +57,7 @@ D_HOST_PORT_TCP_8889=8002
 D_HOST_PORT_TCP_8888=8001
 ```
 
+---
 
 ### PS
 仓库中的是AMD64 LINUX 编译版本
