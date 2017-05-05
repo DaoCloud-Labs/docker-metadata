@@ -1,0 +1,23 @@
+FROM airdock/oracle-jdk:latest
+
+MAINTAINER Grissom Wang <grissom.wang@daocloud.io>
+
+ENV TIME_ZONE Asia/Shanghai
+
+RUN echo "$TIME_ZONE" > /etc/timezone
+
+WORKDIR /app
+
+RUN curl -o sources.list.jessie http://mirrors.163.com/.help/sources.list.jessie && mv sources.list.jessie /etc/apt/sources.list
+
+RUN apt-get update
+
+COPY target/eureka-client-0.0.1-SNAPSHOT.jar /app/eureka-client.jar
+
+COPY docker-metadata /app/docker-metadata
+
+EXPOSE 8080
+
+EXPOSE 8081
+
+CMD ./docker-metadata && sh set_env.sh && java -jar -Deureka.instance.ip-address=${D_HOST_IP}  -Deureka.instance.non-secure-port=${D_HOST_PORT_TCP_8080} eureka-client.jar 
