@@ -16,7 +16,7 @@
 推荐使用 docker
 
 ```bash
-    docker run -it  -v $PWD:/usr/code -w /usr/code  golang go build docker-meta.go
+    docker run -it  -v $PWD:/usr/code -w /usr/code  golang go build docker-metadata.go
 ```
 
 或者使用 
@@ -30,7 +30,7 @@
 ## Usage
 
 ```bash
-    ./docker-meta && sh set_env.sh
+    ./docker-metadata && sh set_env.sh
 ```
 
 ---
@@ -45,7 +45,7 @@
 我们可以在容器中执行
 
 ```bash
-    ./docker-meta && source set_env.sh
+    ./docker-metadata && source set_env.sh
 ```
 
 使用 env 我们可以看见如下信息
