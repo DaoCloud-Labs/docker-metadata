@@ -59,5 +59,15 @@ D_HOST_PORT_TCP_8888=8001
 
 ---
 
+## Eureka Client Settings
+
+add following properties in application properties file
+```
+eureka.instance.prefer-ip-address=true
+```
+## Dockerfile
+
+Please refer to sample-Dockerfile
+
 ### PS
 仓库中的是AMD64 LINUX 编译版本
