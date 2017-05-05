@@ -61,7 +61,7 @@ D_HOST_PORT_TCP_8888=8001
 
 ## Eureka Client Settings
 
-add following properties in application properties file
+Add following property in application properties file
 ```
 eureka.instance.prefer-ip-address=true
 ```
