@@ -1,8 +1,8 @@
-# Usage:  ./host_is_exist.sh 192.168.1.1
+# Usage:  ./host_is_exist.sh '172.16.[0-9]\{1,3\}\.[0-9]\{1,3\}'
 
 for loop in 1 2 3
 do
-    if ping -q -c2 $1 >/dev/null
+    if ifconfig | awk -F "[: ]+" '/inet addr:/ { if ($4 != "127.0.0.1") print $4 }' | grep -o $1 >/dev/null
     then
         echo "online"
         break
