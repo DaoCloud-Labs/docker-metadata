@@ -1,4 +1,4 @@
-# Usage:  ./host_is_exist.sh '172.16.[0-9]\{1,3\}\.[0-9]\{1,3\}'
+# Usage:  ./check_macvlan_ip.sh '172.16.[0-9]\{1,3\}\.[0-9]\{1,3\}'
 
 for loop in 1 2 3 4 5 6
 do
