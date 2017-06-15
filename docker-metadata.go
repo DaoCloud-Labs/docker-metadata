@@ -109,11 +109,17 @@ func setEnvInMacVlan() {
 
 			}
 		}
+		if matched {
+			break
+		}
+
 		time.Sleep(time.Second * time.Duration(timeout))
 		retry--
 	}
 
-	fatalLog("timeout can't get macvlan ip...")
+	if !matched {
+		fatalLog("timeout can't get macvlan ip...")
+	}
 }
 
 func setEnvInPortMapping() {
