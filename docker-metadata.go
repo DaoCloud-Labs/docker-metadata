@@ -24,13 +24,7 @@ var segment string
 
 func main() {
 
-	flag.StringVar(&network, "network", "port", "network model:  port | mac , if use env key is DAE_NETWORK ")
-	flag.IntVar(&retry, "retry", 1, "if in MACVLAN network is retry number, if use env key is DAE_RETRY")
-	flag.IntVar(&timeout, "timeout", 20, "if in MACVLAN network is timeout, if use env key is DAE_TIMEOUT")
-	flag.StringVar(&failure, "failure", "exit", "if set env failure, exit | continue , if use env key is DAE_FAILURE")
-	flag.StringVar(&segment, "segment", "", "MACVLAN network segment regexp pattern, if use env key is DAE_SEGMENT")
-	flag.Parse()
-
+	setFlag()
 	getEnv()
 
 	switch network {
@@ -42,6 +36,15 @@ func main() {
 		fatalLog("network must is port | mac")
 	}
 
+}
+
+func setFlag() {
+	flag.StringVar(&network, "network", "port", "network model:  port | mac , if use env key is DAE_NETWORK ")
+	flag.IntVar(&retry, "retry", 1, "if in MACVLAN network is retry number, if use env key is DAE_RETRY")
+	flag.IntVar(&timeout, "timeout", 20, "if in MACVLAN network is timeout, if use env key is DAE_TIMEOUT")
+	flag.StringVar(&failure, "failure", "exit", "if set env failure, exit | continue , if use env key is DAE_FAILURE")
+	flag.StringVar(&segment, "segment", "", "MACVLAN network segment regexp pattern, if use env key is DAE_SEGMENT")
+	flag.Parse()
 }
 
 func getEnv() {
