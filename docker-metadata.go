@@ -22,6 +22,8 @@ var timeout int
 var failure string
 var segment string
 
+//syscall.Exec(os.Getenv("SHELL"), []string{os.Getenv("SHELL")}, syscall.Environ())
+
 func main() {
 
 	setFlag()
@@ -101,6 +103,7 @@ func setEnvInMacVlan() {
 
 				if matched {
 					os.Setenv("DCE_ADVERTISE_IP", ipString)
+					os.Exit(0)
 				}
 
 			}
@@ -108,6 +111,8 @@ func setEnvInMacVlan() {
 		time.Sleep(time.Second * time.Duration(timeout))
 		retry--
 	}
+
+	fatalLog("timeout can't get macvlan ip...")
 }
 
 func setEnvInPortMapping() {
