@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"time"
 	"strconv"
+	"syscall"
 )
 
 var network string
@@ -38,6 +39,7 @@ func main() {
 		fatalLog("network must is port | mac")
 	}
 
+	syscall.Exec(os.Getenv("SHELL"), []string{os.Getenv("SHELL")}, syscall.Environ())
 }
 
 func setFlag() {
@@ -72,7 +74,7 @@ func setEnvInMacVlan() {
 
 	var matched bool = false
 
-	for retry > 0 {
+	for retry > 0 && !matched {
 		ifaces, err := net.Interfaces()
 		if err != nil {
 			fatalLog("can't get net Interfaces")
@@ -103,7 +105,6 @@ func setEnvInMacVlan() {
 
 				if matched {
 					os.Setenv("DCE_ADVERTISE_IP", ipString)
-					os.Exit(0)
 				}
 
 			}
