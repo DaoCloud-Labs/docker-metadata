@@ -57,6 +57,8 @@ func runCommand() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	os.Exit(0)
 }
 
 func setFlag() {
@@ -93,6 +95,7 @@ func setEnvInMacVlan() {
 
 	var matched bool = false
 
+	LOOP:
 	for time.Now().Before(timeoutAt) && !matched {
 		ifaces, err := net.Interfaces()
 		if err != nil {
@@ -100,7 +103,6 @@ func setEnvInMacVlan() {
 		}
 		for _, i := range ifaces {
 			addrs, err := i.Addrs()
-
 			if err != nil {
 				fatalLog("can't get interface ip")
 			}
@@ -118,7 +120,6 @@ func setEnvInMacVlan() {
 				log.Printf("find ip [ %s ]", ipString)
 
 				matched, err = regexp.MatchString(segment, ipString)
-
 				if err != nil {
 					fatalLog("can't MatchString %s with %s", ipString, segment)
 				}
@@ -126,13 +127,10 @@ func setEnvInMacVlan() {
 				if matched {
 					os.Setenv("DCE_ADVERTISE_IP", ipString)
 					log.Printf("set DCE_ADVERTISE_IP to [ %s ]", ipString)
-					break
+					break LOOP
 				}
 
 			}
-		}
-		if matched {
-			break
 		}
 
 		time.Sleep(time.Second * time.Duration(5))
@@ -155,26 +153,27 @@ func setEnvInPortMapping() {
 	}
 
 	hostname := os.Getenv("HOSTNAME")
-	log.Printf("HOSTNAME is %s \n", hostname)
+	log.Printf("HOSTNAME is %s", hostname)
 
 	hostInfoUrl := "http://unix/containers/" + hostname + "/json"
-	log.Printf("hostInfoUrl is %s \n", hostInfoUrl)
+	log.Printf("hostInfoUrl is %s", hostInfoUrl)
 
 	resp, err := client.Get(hostInfoUrl)
 	if err != nil {
 		fatalLog("can't get host info from " + hostInfoUrl)
 	}
+	defer resp.Body.Close()
 
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fatalLog("read data from resp err")
 	}
 
-	var portInfo *PortInfo = &PortInfo{}
+	var portInfo = &PortInfo{}
 
 	err = json.Unmarshal(data, portInfo)
 	if err != nil {
-		fatalLog("Unmarshal json data error: " + string(data[:]))
+		fatalLog("Unmarshal json data error: " + string(data))
 	}
 	var isOnly bool = true
 	for key, vale := range portInfo.NetworkSettings.Ports {
@@ -183,7 +182,7 @@ func setEnvInPortMapping() {
 		innerProtocol := keys[1]
 		hostPort := vale[0].HostPort
 
-		log.Printf("innerPort [%s], innerProtocol [%s], hostPort [%s] \n", innerPort, innerProtocol, hostPort)
+		log.Printf("innerPort [%s], innerProtocol [%s], hostPort [%s]", innerPort, innerProtocol, hostPort)
 
 		if isOnly {
 			os.Setenv("DCE_ADVERTISE_PORT", hostPort)
@@ -198,24 +197,25 @@ func setEnvInPortMapping() {
 	if err != nil {
 		fatalLog("can't get host info from " + hostInfoUrl)
 	}
+	defer resp.Body.Close()
 
 	data, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fatalLog("read data from resp err")
 	}
 
-	var ipInfo *IpInfo = &IpInfo{}
+	var ipInfo = &IpInfo{}
 	err = json.Unmarshal(data, ipInfo)
 	if err != nil {
-		fatalLog("Unmarshal json data error: " + string(data[:]))
+		fatalLog("Unmarshal json data error: " + string(data))
 	}
 
-	log.Printf("ip address [%s] \n", ipInfo.Swarm.NodeAddr)
+	log.Printf("ip address [%s]", ipInfo.Swarm.NodeAddr)
 	os.Setenv("DCE_ADVERTISE_IP", ipInfo.Swarm.NodeAddr)
 }
 
-func fatalLog(v ...interface{}) {
-	log.Println(v)
+func fatalLog(format string, v ...interface{}) {
+	log.Printf(format, v...)
 	switch failure {
 	case "continue":
 		runCommand()
