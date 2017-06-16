@@ -20,6 +20,9 @@ var network string
 var timeout int
 var failure string
 var segment string
+var outputFile string
+var isManualSourceEnv bool = false
+var file *os.File
 
 //syscall.Exec(os.Getenv("SHELL"), []string{os.Getenv("SHELL")}, syscall.Environ())
 
@@ -30,6 +33,15 @@ func main() {
 	setFlag()
 	getEnv()
 	showParam()
+
+	if outputFile != "" {
+		isManualSourceEnv = true
+		f, err := os.Create(outputFile)
+		if err != nil {
+			fatalLog("create file %s error", outputFile)
+		}
+		file = f
+	}
 
 	switch network {
 	case "port":
@@ -43,7 +55,20 @@ func main() {
 	runCommand()
 }
 
+func setAndWriteEnv(key string, val string) {
+	if isManualSourceEnv {
+		file.WriteString("export " + key + "=" + val + "\n")
+	} else {
+		os.Setenv(key, val)
+	}
+}
+
 func runCommand() {
+
+	if isManualSourceEnv {
+		return
+	}
+
 	argsWithProg := flag.Args()
 	command := argsWithProg[0]
 	args := argsWithProg[1:]
@@ -52,7 +77,7 @@ func runCommand() {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 
-	log.Printf("command [ %s ], args %s , \nEnviron %s", command, args, os.Environ())
+	log.Printf("command [ %s ], args %s , \n    Environ %s", command, args, os.Environ())
 
 	err := cmd.Run()
 	if err != nil {
@@ -67,6 +92,7 @@ func setFlag() {
 	flag.IntVar(&timeout, "timeout", 20, "if in MACVLAN network is timeout, if use env key is DAE_TIMEOUT")
 	flag.StringVar(&failure, "failure", "exit", "if set env failure, exit | continue , if use env key is DAE_FAILURE")
 	flag.StringVar(&segment, "segment", "", "MACVLAN network segment regexp pattern, if use env key is DAE_SEGMENT")
+	flag.StringVar(&outputFile, "output", "", "output file, if set this value, please source output.file, if use env key is DAE_OUTPUT ")
 	flag.Parse()
 }
 
@@ -82,6 +108,14 @@ func getEnv() {
 	}
 	if os.Getenv("DAE_SEGMENT") != "" {
 		segment = os.Getenv("DAE_SEGMENT")
+	}
+	if os.Getenv("DAE_OUTPUT") != "" {
+		outputFile = os.Getenv("DAE_OUTPUT")
+	}
+
+	//Default value
+	if segment == "" {
+		segment = "^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$";
 	}
 }
 
@@ -117,6 +151,10 @@ LOOP:
 					ip = v.IP
 				}
 
+				if !isPublicIP(ip) {
+					continue
+				}
+
 				ipString := ip.String()
 				log.Printf("find ip [ %s ]", ipString)
 
@@ -126,7 +164,7 @@ LOOP:
 				}
 
 				if matched {
-					os.Setenv("DCE_ADVERTISE_IP", ipString)
+					setAndWriteEnv("DCE_ADVERTISE_IP", ipString)
 					log.Printf("set DCE_ADVERTISE_IP to [ %s ]", ipString)
 					break LOOP
 				}
@@ -186,11 +224,11 @@ func setEnvInPortMapping() {
 		log.Printf("innerPort [%s], innerProtocol [%s], hostPort [%s]", innerPort, innerProtocol, hostPort)
 
 		if isOnly {
-			os.Setenv("DCE_ADVERTISE_PORT", hostPort)
+			setAndWriteEnv("DCE_ADVERTISE_PORT", hostPort)
 			isOnly = false
 		}
 
-		os.Setenv("DCE_ADVERTISE_PORT_"+innerPort, hostPort)
+		setAndWriteEnv("DCE_ADVERTISE_PORT_"+innerPort, hostPort)
 	}
 
 	hostInfoUrl = "http://unix/info"
@@ -212,7 +250,26 @@ func setEnvInPortMapping() {
 	}
 
 	log.Printf("ip address [%s]", ipInfo.Swarm.NodeAddr)
-	os.Setenv("DCE_ADVERTISE_IP", ipInfo.Swarm.NodeAddr)
+	setAndWriteEnv("DCE_ADVERTISE_IP", ipInfo.Swarm.NodeAddr)
+}
+
+func isPublicIP(IP net.IP) bool {
+	if IP.IsLoopback() || IP.IsLinkLocalMulticast() || IP.IsLinkLocalUnicast() {
+		return false
+	}
+	if ip4 := IP.To4(); ip4 != nil {
+		switch true {
+		case ip4[0] == 10:
+			return false
+		case ip4[0] == 172 && ip4[1] >= 16 && ip4[1] <= 31:
+			return false
+		case ip4[0] == 192 && ip4[1] == 168:
+			return false
+		default:
+			return true
+		}
+	}
+	return false
 }
 
 func fatalLog(format string, v ...interface{}) {
