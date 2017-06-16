@@ -47,12 +47,13 @@ func runCommand() {
 	argsWithProg := flag.Args()
 	command := argsWithProg[0]
 	args := argsWithProg[1:]
-	log.Printf("command [ %s ], args %s", command, args)
-
 	cmd := exec.Command(command, args...)
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
+
+	log.Printf("command [ %s ], args %s , \nEnviron %s", command, args, os.Environ())
+
 	err := cmd.Run()
 	if err != nil {
 		log.Fatalln(err)
@@ -95,7 +96,7 @@ func setEnvInMacVlan() {
 
 	var matched bool = false
 
-	LOOP:
+LOOP:
 	for time.Now().Before(timeoutAt) && !matched {
 		ifaces, err := net.Interfaces()
 		if err != nil {
