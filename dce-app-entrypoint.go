@@ -125,7 +125,6 @@ func showParam() {
 
 func setEnvInMacVlan() {
 	log.Println("try set env in MACVLAN network")
-
 	timeoutAt := time.Now().Add(time.Second * time.Duration(timeout))
 
 	var matched bool = false
@@ -152,6 +151,8 @@ LOOP:
 				}
 
 				if !isPublicIP(ip) {
+					log.Printf("find ip address %s , but not matched \n", ip.String())
+
 					continue
 				}
 
@@ -173,6 +174,7 @@ LOOP:
 		}
 
 		time.Sleep(time.Second * time.Duration(5))
+		log.Println("try set env in MACVLAN network again")
 	}
 
 	if !matched {
