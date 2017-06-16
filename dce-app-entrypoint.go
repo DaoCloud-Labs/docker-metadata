@@ -40,6 +40,10 @@ func main() {
 		fatalLog("network must is port | mac")
 	}
 
+	runCommand()
+}
+
+func runCommand() {
 	argsWithProg := flag.Args()
 	command := argsWithProg[0]
 	args := argsWithProg[1:]
@@ -214,7 +218,7 @@ func fatalLog(v ...interface{}) {
 	log.Println(v)
 	switch failure {
 	case "continue":
-		os.Exit(0)
+		runCommand()
 	default:
 		os.Exit(1)
 	}
